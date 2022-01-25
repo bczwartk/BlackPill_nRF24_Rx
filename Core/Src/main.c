@@ -58,7 +58,8 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+uint64_t rxPipeAddress = 0x2109BC1971;
+char myRxData[50];
 /* USER CODE END 0 */
 
 /**
@@ -97,6 +98,13 @@ int main(void)
   nrf24_DebugUART_Init(huart2);
   printRadioSettings();
 
+  // receive - no ack
+  NRF24_setAutoAck(false);
+  NRF24_setChannel(52);
+  NRF24_setPayloadSize(32);
+  NRF24_openReadingPipe(1,  rxPipeAddress);
+  NRF24_startListening();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -107,7 +115,14 @@ int main(void)
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	HAL_Delay(100);
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	HAL_Delay(2900);
+	HAL_Delay(900);
+
+	if (NRF24_available()) {
+        NRF24_read(myRxData, 32);
+        myRxData[32] = '\r';
+        myRxData[32 + 1] = '\n';
+        HAL_UART_Transmit(&huart2, (uint8_t *) myRxData, 32 + 2, 10);
+	}
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
