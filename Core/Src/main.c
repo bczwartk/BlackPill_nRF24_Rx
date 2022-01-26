@@ -103,7 +103,15 @@ int main(void)
   NRF24_setChannel(52);
   NRF24_setPayloadSize(32);
   NRF24_openReadingPipe(1,  rxPipeAddress);
+  printRadioSettings();
   NRF24_startListening();
+
+  for (int i = 0; i < 5; ++ i) {
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+      HAL_Delay(100);
+      HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+      HAL_Delay(100);
+  }
 
   /* USER CODE END 2 */
 
@@ -112,16 +120,20 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	HAL_Delay(100);
-	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	HAL_Delay(900);
+	//		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+	//		HAL_Delay(100);
+	//		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+	//		HAL_Delay(2900);
 
 	if (NRF24_available()) {
-        NRF24_read(myRxData, 32);
-        myRxData[32] = '\r';
-        myRxData[32 + 1] = '\n';
-        HAL_UART_Transmit(&huart2, (uint8_t *) myRxData, 32 + 2, 10);
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+		HAL_Delay(100);
+		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
+
+		NRF24_read(myRxData, 32);
+		myRxData[32] = '\r';
+		myRxData[32 + 1] = '\n';
+		HAL_UART_Transmit(&huart2, (uint8_t *) myRxData, 32 + 2, 10);
 	}
     /* USER CODE BEGIN 3 */
   }
