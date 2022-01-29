@@ -99,7 +99,7 @@ int main(void)
   // printRadioSettings();
 
   // receive - no ack
-  NRF24_setAutoAck(false);
+  NRF24_setAutoAck(true);
   NRF24_setChannel(52);
   NRF24_setPayloadSize(32);
   NRF24_openReadingPipe(1,  rxPipeAddress);
