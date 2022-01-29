@@ -112,6 +112,7 @@ int main(void)
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
       HAL_Delay(100);
   }
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Rx ready\r\n", strlen("Rx ready\r\n"), 10);
 
   /* USER CODE END 2 */
 
