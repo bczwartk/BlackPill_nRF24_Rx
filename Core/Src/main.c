@@ -96,7 +96,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   NRF24_begin(CSNpin_GPIO_Port, CSNpin_Pin, CEpin_Pin, hspi1);
   nrf24_DebugUART_Init(huart2);
-  printRadioSettings();
+  // printRadioSettings();
 
   // receive - no ack
   NRF24_setAutoAck(false);
