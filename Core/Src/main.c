@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include <stdio.h>
 #include "NRF24.h"
 /* USER CODE END Includes */
 
@@ -58,8 +59,13 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef struct {
+	uint32_t revId;
+	uint32_t devId;
+	char payload[16];
+} ExchangeData_t;
+
 uint64_t rxPipeAddress = 0x2109BC1971;
-char myRxData[50];
 /* USER CODE END 0 */
 
 /**
@@ -96,12 +102,11 @@ int main(void)
   /* USER CODE BEGIN 2 */
   NRF24_begin(CSNpin_GPIO_Port, CSNpin_Pin, CEpin_Pin, hspi1);
   nrf24_DebugUART_Init(huart2);
-  printRadioSettings();
 
-  // receive - no ack
-  NRF24_setAutoAck(false);
+  // receive with ACK
+  NRF24_setAutoAck(true);
   NRF24_setChannel(52);
-  NRF24_setPayloadSize(32);
+  NRF24_setPayloadSize(sizeof(ExchangeData_t));
   NRF24_openReadingPipe(1,  rxPipeAddress);
   printRadioSettings();
   NRF24_startListening();
@@ -112,6 +117,10 @@ int main(void)
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
       HAL_Delay(100);
   }
+  HAL_UART_Transmit(&huart2, (uint8_t *)"Rx ready\r\n", strlen("Rx ready\r\n"), 10);
+
+  ExchangeData_t data;
+  char msg[64];
 
   /* USER CODE END 2 */
 
@@ -120,22 +129,16 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	//		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	//		HAL_Delay(100);
-	//		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
-	//		HAL_Delay(2900);
-
+    /* USER CODE BEGIN 3 */
 	if (NRF24_available()) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 		HAL_Delay(100);
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
-		NRF24_read(myRxData, 32);
-		myRxData[32] = '\r';
-		myRxData[32 + 1] = '\n';
-		HAL_UART_Transmit(&huart2, (uint8_t *) myRxData, 32 + 2, 10);
+		NRF24_read(&data, sizeof(data));
+		sprintf(msg, "%lx/%lx: %16s\r\n", data.revId, data.devId, data.payload);
+		HAL_UART_Transmit(&huart2, (uint8_t *) msg, sizeof(msg), 10);
 	}
-    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
