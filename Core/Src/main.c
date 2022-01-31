@@ -129,6 +129,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
 	if (NRF24_available()) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 		HAL_Delay(100);
@@ -138,7 +139,6 @@ int main(void)
 		sprintf(msg, "%lx/%lx: %16s\r\n", data.revId, data.devId, data.payload);
 		HAL_UART_Transmit(&huart2, (uint8_t *) msg, sizeof(msg), 10);
 	}
-    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
