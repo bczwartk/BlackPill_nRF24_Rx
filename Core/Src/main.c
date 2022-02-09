@@ -59,6 +59,17 @@ static void MX_USART2_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+int __io_putchar(int ch)
+{
+  if (ch == '\n') {
+    __io_putchar('\r');
+  }
+  HAL_UART_Transmit(&huart2, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+  return 1;
+}
+
+
 typedef struct {
 	uint32_t revId;
 	uint32_t devId;
@@ -66,6 +77,16 @@ typedef struct {
 } ExchangeData_t;
 
 uint64_t rxPipeAddress = 0x2109BC1971;
+
+#define DS18B20_ROM_CODE_SIZE		8
+#define DS18B20_INVALID_TEMP       0x0550
+
+typedef struct {
+	int16_t temp;
+	uint8_t address[DS18B20_ROM_CODE_SIZE];
+} DS18B20Data_t;
+
+
 /* USER CODE END 0 */
 
 /**
@@ -106,7 +127,8 @@ int main(void)
   // receive with ACK
   NRF24_setAutoAck(true);
   NRF24_setChannel(52);
-  NRF24_setPayloadSize(sizeof(ExchangeData_t));
+  // NRF24_setPayloadSize(sizeof(ExchangeData_t));
+  NRF24_setPayloadSize(sizeof(DS18B20Data_t));
   NRF24_openReadingPipe(1,  rxPipeAddress);
   printRadioSettings();
   NRF24_startListening();
@@ -117,28 +139,32 @@ int main(void)
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
       HAL_Delay(100);
   }
-  HAL_UART_Transmit(&huart2, (uint8_t *)"Rx ready\r\n", strlen("Rx ready\r\n"), 10);
-
-  ExchangeData_t data;
-  char msg[64];
+  printf("Rx ready\r\n");
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // ExchangeData_t data;
+  DS18B20Data_t tempData;
   while (1)
   {
-    /* USER CODE END WHILE */
-    /* USER CODE BEGIN 3 */
 	if (NRF24_available()) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-		HAL_Delay(100);
+		HAL_Delay(50);
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
-		NRF24_read(&data, sizeof(data));
-		sprintf(msg, "%lx/%lx: %16s\r\n", data.revId, data.devId, data.payload);
-		HAL_UART_Transmit(&huart2, (uint8_t *) msg, sizeof(msg), 10);
+		memset(&tempData.address[0], 0, sizeof(tempData.address));
+		tempData.temp = DS18B20_INVALID_TEMP;
+		NRF24_read(&tempData, sizeof(tempData));
+
+		for (int idx = 0; idx < DS18B20_ROM_CODE_SIZE; idx++) {
+			printf("%02hX:", tempData.address[idx]);
+		}
+		printf("  %.1f*C\r\n", (tempData.temp / 16.0f));
 	}
+    /* USER CODE END WHILE */
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
