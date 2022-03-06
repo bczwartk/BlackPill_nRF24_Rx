@@ -127,31 +127,29 @@ int main(void)
   // receive with ACK
   NRF24_setAutoAck(true);
   NRF24_setChannel(52);
-  // NRF24_setPayloadSize(sizeof(ExchangeData_t));
   NRF24_setPayloadSize(sizeof(DS18B20Data_t));
   NRF24_openReadingPipe(1,  rxPipeAddress);
   printRadioSettings();
   NRF24_startListening();
 
-  for (int i = 0; i < 5; ++ i) {
+  for (int i = 0; i < 3; ++ i) {
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-      HAL_Delay(100);
+      HAL_Delay(10);
       HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
       HAL_Delay(100);
   }
-  printf("Rx ready\r\n");
+  printf("Rx ready\n");
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  // ExchangeData_t data;
   DS18B20Data_t tempData;
   while (1)
   {
 	if (NRF24_available()) {
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-		HAL_Delay(50);
+		HAL_Delay(1);
 		HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_SET);
 
 		memset(&tempData.address[0], 0, sizeof(tempData.address));
@@ -161,7 +159,7 @@ int main(void)
 		for (int idx = 0; idx < DS18B20_ROM_CODE_SIZE; idx++) {
 			printf("%02hX:", tempData.address[idx]);
 		}
-		printf("  %.1f*C\r\n", (tempData.temp / 16.0f));
+		printf("  %.1f*C\n", (tempData.temp / 16.0f));
 	}
     /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
